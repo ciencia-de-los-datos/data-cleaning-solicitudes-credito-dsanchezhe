@@ -25,14 +25,5 @@ def clean_data():
     df.monto_del_credito = df.monto_del_credito.astype(float)
     df.linea_credito=df.linea_credito.str.replace('-',' ', regex=False).str.replace('_',' ',regex=False).str.capitalize()
     
-    # Verificar si hay datos nulos
-    if df.isnull().values.any():
-        print("Hay datos nulos en el dataframe")
-        df = df.dropna()
-
-    # Verificar si hay filas duplicadas
-    if df.duplicated().values.any():
-        print("Hay filas duplicadas en el dataframe")
-        df = df.drop_duplicates()
-
+   
     return df
