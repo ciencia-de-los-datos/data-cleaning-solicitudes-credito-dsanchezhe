@@ -8,22 +8,28 @@ correctamente. Tenga en cuenta datos faltantes y duplicados.
 """
 import pandas as pd
 
+
 def clean_data():
 
-    df = pd.read_csv("solicitudes_credito.csv", sep=";")
-    df.rename(columns={'Unnamed: 0':'index'},inplace=True)
-    df.set_index('index', inplace=True)
+    # Cargamos el archivo y eliminamos de columna innecesaria
+    df = pd.read_csv("solicitudes_credito.csv", sep=";").drop(columns=['Unnamed: 0'])
+    # Eliminamos duplicados y valores nulos
+    df = df.dropna().drop_duplicates()
 
-    df.sexo = df.sexo.str.lower().astype(str).str.strip()
-    df.tipo_de_emprendimiento = df.tipo_de_emprendimiento.str.capitalize().str.strip()
-    df.idea_negocio = df.idea_negocio.str.replace('_',' ', regex=False).str.replace('_',' ',regex=False).str.capitalize().str.strip
-    df.barrio = df.barrio.str.replace('_','-').str.replace('-',' ').str.lower()
-    df.estrato = df.estrato.astype("str").str.capitalize()
-    df.comuna_ciudadano = df.comuna_ciudadano.astype(str).str.capitalize()
-    df.fecha_de_beneficio = pd.to_datetime(df["fecha_de_beneficio"], dayfirst= True)
-    df.monto_del_credito = df.monto_del_credito.str.replace(",","",regex=True).str.replace("$","",regex=True).str.strip
-    df.monto_del_credito = df.monto_del_credito.astype(float)
-    df.linea_credito=df.linea_credito.str.replace('-',' ', regex=False).str.replace('_',' ',regex=False).str.capitalize()
+    # Normalizamos las columnas de sexo, tipo de emprendimiento, idea de negocio y línea de crédito con una función lambda
+    normalize_str = lambda x: x.lower().replace('_', ' ').replace('-', ' ').strip()
+    df['sexo'] = df['sexo'].apply(normalize_str)
+    df['tipo_de_emprendimiento'] = df['tipo_de_emprendimiento'].apply(normalize_str)
+    df['idea_negocio'] = df['idea_negocio'].apply(normalize_str)
+    df['línea_credito'] = df['línea_credito'].apply(normalize_str)
+    #Para la columna barrio reemplazamos _ por - y luego - por espacio porque hay valores que tienen _ y otros que tienen - y así quedan todos iguales
+    df['barrio'] = df['barrio'].apply(lambda x: x.lower().replace('_', '-').replace('-', ' '))
+
+    # Convertimos monto del credito a número
+    df['monto_del_credito'] = df['monto_del_credito'].str.replace(',', '').str.replace('$', '', regex=False).str.replace(' ', '').astype(float)
+    # Cambiamos el formato de la fecha de la columna fecha_de_beneficio
+    df['fecha_de_beneficio'] = pd.to_datetime(df['fecha_de_beneficio'], dayfirst=True)
+    # Eliminamos duplicados y valores nulos
+    df = df.drop_duplicates().dropna()
     
-   
     return df
