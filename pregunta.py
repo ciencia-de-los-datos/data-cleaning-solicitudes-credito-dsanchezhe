@@ -8,7 +8,6 @@ correctamente. Tenga en cuenta datos faltantes y duplicados.
 """
 import pandas as pd
 
-
 def clean_data():
 
     df = pd.read_csv("solicitudes_credito.csv", sep=";")
@@ -24,7 +23,16 @@ def clean_data():
     df.fecha_de_beneficio = pd.to_datetime(df["fecha_de_beneficio"], dayfirst= True)
     df.monto_del_credito = df.monto_del_credito.str.replace(",","",regex=True).str.replace("$","",regex=True).str.strip
     df.monto_del_credito = df.monto_del_credito.astype(float)
-    df.linea_credito=df.linea_credito.str.replace('-',' ', regex=False).str.replace('_',' ',regex=False).str.capitalize
-    df.dropna(inplace=True)
-    df.drop_duplicates(inplace=True)
+    df.linea_credito=df.linea_credito.str.replace('-',' ', regex=False).str.replace('_',' ',regex=False).str.capitalize()
+    
+    # Verificar si hay datos nulos
+    if df.isnull().values.any():
+        print("Hay datos nulos en el dataframe")
+        df = df.dropna()
+
+    # Verificar si hay filas duplicadas
+    if df.duplicated().values.any():
+        print("Hay filas duplicadas en el dataframe")
+        df = df.drop_duplicates()
+
     return df
