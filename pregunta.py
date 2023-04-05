@@ -7,50 +7,32 @@ correctamente. Tenga en cuenta datos faltantes y duplicados.
 
 """
 import pandas as pd
-import numpy as np
+
+
+import pandas as pd
 
 
 def clean_data():
-  
 
-    df = pd.read_csv("solicitudes_credito.csv", sep=";")
+    # Cargamos el archivo y eliminamos de columna innecesaria
+df = pd.read_csv("solicitudes_credito.csv", sep=";").drop(columns=['Unnamed: 0'])
+    # Eliminamos duplicados y valores nulos
+df = df.dropna().drop_duplicates()
 
-    df.replace(r'^\s*$', np.NaN, regex=True)
-    df.dropna(inplace=True)
+    # Normalizamos las columnas de sexo, tipo de emprendimiento, idea de negocio y línea de crédito con una función lambda
+normalize_str = lambda x: x.lower().replace('_', ' ').replace('-', ' ').strip()
+df['sexo'] = df['sexo'].apply(normalize_str)
+df['tipo_de_emprendimiento'] = df['tipo_de_emprendimiento'].apply(normalize_str)
+df['idea_negocio'] = df['idea_negocio'].apply(normalize_str)
+df['línea_credito'] = df['línea_credito'].apply(normalize_str)
+    #Para la columna barrio reemplazamos _ por - y luego - por espacio porque hay valores que tienen _ y otros que tienen - y así quedan todos iguales
+df['barrio'] = df['barrio'].apply(lambda x: x.lower().replace('_', '-').replace('-', ' '))
 
-    del df ["Unnamed: 0"]
-
-    df.astype({'sexo':'string','tipo_de_emprendimiento':'string','idea_negocio':'string','barrio':'string','línea_credito':'string'})
-    df['sexo'] = df['sexo'].apply(str.lower)
-    df['tipo_de_emprendimiento'] = df['tipo_de_emprendimiento'].astype(str)
-    df['barrio'] = df['barrio'].astype(str)
-    df['tipo_de_emprendimiento'] = df['tipo_de_emprendimiento'].apply(str.lower)
-    df['idea_negocio'] = df['idea_negocio'].apply(str.lower)
-    df['barrio'] = df['barrio'].apply(str.lower)
-    df['línea_credito'] = df['línea_credito'].apply(str.lower)
-
-
-    df['monto_del_credito'] = df['monto_del_credito'].apply(lambda x: x.replace('$', '').replace(',', '')
-                                    if isinstance(x, str) else x).astype(float)
-    df.idea_negocio = df.idea_negocio.str.replace("_", " ", regex=False)
-    df.idea_negocio = df.idea_negocio.str.replace("-", " ", regex=False)
-    df.idea_negocio = df.idea_negocio.str.replace(".", " ", regex=False)
-    df.idea_negocio = df.idea_negocio.str.replace("  ", " ", regex=False)
-    df.idea_negocio = df['idea_negocio'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
-
-    df.barrio = df.barrio.str.replace("_", " ", regex=False)
-    df.barrio = df.barrio.str.replace("-", " ", regex=False)
-    df.barrio = df.barrio.str.replace(".", " ", regex=False)
-    df.barrio = df['barrio'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
-
-    df.línea_credito = df.línea_credito.str.replace("_", " ", regex=False)
-    df.línea_credito = df.línea_credito.str.replace("-", " ", regex=False)
-    df.línea_credito = df.línea_credito.str.replace(".", " ", regex=False)
-    df.línea_credito = df.línea_credito.str.replace("  ", " ", regex=False)
-    df.línea_credito = df['línea_credito'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
-
-    df = df.drop_duplicates()
-    df = df.reset_index(drop=True)
-
-    return df
-#finalizado
+    # Convertimos monto del credito a número
+df['monto_del_credito'] = df['monto_del_credito'].str.replace(',', '').str.replace('$', '', regex=False).str.replace(' ', '').astype(float)
+    # Cambiamos el formato de la fecha de la columna fecha_de_beneficio
+df['fecha_de_beneficio'] = pd.to_datetime(df['fecha_de_beneficio'], dayfirst=True)
+    # Eliminamos duplicados y valores nulos
+df = df.drop_duplicates().dropna()
+    
+return df
